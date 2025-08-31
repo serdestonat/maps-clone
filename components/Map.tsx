@@ -120,10 +120,14 @@ export default function Map() {
       waypoints.push(L.latLng(userLocation[0], userLocation[1]));
     }
 
-    if (clickedMarker) {
+    if (!userLocation && clickedMarker) {
       waypoints.push(L.latLng(clickedMarker[0], clickedMarker[1]));
-    } else if (searchMarker) {
+    }
+
+    if (searchMarker) {
       waypoints.push(L.latLng(searchMarker[0], searchMarker[1]));
+    } else if (clickedMarker && userLocation) {
+      waypoints.push(L.latLng(clickedMarker[0], clickedMarker[1]));
     }
 
     setRouteWaypoints(waypoints);

@@ -40,6 +40,8 @@ export default function UserLocationMarker({
         if (onLocationChange) {
           onLocationChange(newPosition);
         }
+
+        map.setView(newPosition, map.getZoom());
       },
       (err) => {
         console.log("Unable to retrieve location : ", err);
