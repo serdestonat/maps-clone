@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 
@@ -24,47 +24,37 @@ export default function UserLocationMarker({
 }: UserLocationMarkerProps) {
   const [position, setPosition] = useState<[number, number] | null>(null);
   const map = useMap();
+  const centeredOnce = useRef(false);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
 
+    // Konumu takip et ama HARİTAYI SÜREKLİ MERKEZE ALMA
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
-        const newPosition: [number, number] = [
+        const newPos: [number, number] = [
           pos.coords.latitude,
           pos.coords.longitude,
         ];
+        setPosition(newPos);
+        onLocationChange?.(newPos);
 
-        setPosition(newPosition);
-
-        if (onLocationChange) {
-          onLocationChange(newPosition);
+        // Sadece ilk tespitte merkeze al (kullanıcıyı kilitlememek için)
+        if (!centeredOnce.current) {
+          map.setView(newPos, map.getZoom());
+          centeredOnce.current = true;
         }
-
-        map.setView(newPosition, map.getZoom());
       },
       (err) => {
-        console.log("Unable to retrieve location : ", err);
+        // izin yoksa sessizce geç
+        console.log("Geolocation error:", err);
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
-      }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
 
     return () => {
       navigator.geolocation.clearWatch(watchId);
     };
-
-    // navigator.geolocation.getCurrentPosition(
-    //   (pos) => {
-    //     setPosition([pos.coords.latitude, pos.coords.longitude]);
-    //   },
-    //   (err) => {
-    //     console.log("Unable to retrieve location : ", err);
-    //   }
-    // );
   }, [map, onLocationChange]);
 
   if (!position) return null;
@@ -75,9 +65,9 @@ export default function UserLocationMarker({
         <div className="text-center">
           <strong>Your Location</strong>
           <br />
-          Latitude : {position[0].toFixed(6)}
+          Latitude: {position[0].toFixed(6)}
           <br />
-          Longtitude : {position[1].toFixed(6)}
+          Longitude: {position[1].toFixed(6)}
         </div>
       </Popup>
     </Marker>

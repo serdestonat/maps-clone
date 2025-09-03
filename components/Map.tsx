@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useRef, useState } from "react";
 import {
   MapContainer,
@@ -11,13 +10,11 @@ import {
 import "leaflet/dist/leaflet.css";
 import UserLocationMarker from "@/components/UserLocationMarker";
 import SearchBox from "@/components/SearchBox";
-
-import L from "leaflet";
-import "leaflet-routing-machine";
-import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+import L, { LatLng } from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import RoutingMachine from "@/components/RoutingMachine";
 
 const customIcon = new L.Icon({
   iconUrl: markerIcon.src,
@@ -56,14 +53,12 @@ export default function Map() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
     null
   );
-  const [routeWaypoints, setRouteWaypoints] = useState<L.LatLng[]>([]);
+  const [routeWaypoints, setRouteWaypoints] = useState<LatLng[]>([]);
   const mapRef = useRef<L.Map>(null);
-  const routingControlRef = useRef<L.Routing.Control | null>(null);
 
   function handleSelect(coords: [number, number]) {
     setCenter(coords);
     setSearchMarker(coords);
-
     if (mapRef.current) {
       mapRef.current.setView(coords, 13);
     }
@@ -71,7 +66,6 @@ export default function Map() {
 
   function handleMapClick(latlng: [number, number]) {
     setClickedMarker(latlng);
-
     if (mapRef.current) {
       mapRef.current.setView(latlng, mapRef.current.getZoom());
     }
@@ -82,61 +76,24 @@ export default function Map() {
   };
 
   useEffect(() => {
-    if (!mapRef.current) return;
-
-    if (routingControlRef.current) {
-      mapRef.current.removeControl(routingControlRef.current);
-      routingControlRef.current = null;
-    }
-
-    if (routeWaypoints.length >= 2) {
-      routingControlRef.current = L.Routing.control({
-        waypoints: routeWaypoints,
-        routeWhileDragging: true,
-        lineOptions: {
-          styles: [{ color: "#0066ff", weight: 4 }],
-          extendToWaypoints: true,
-          missingRouteTolerance: 10,
-        } as L.Routing.LineOptions,
-        showAlternatives: false,
-        addWaypoints: false,
-        // draggableWaypoints: true,
-        fitSelectedRoutes: true,
-        show: true,
-      }).addTo(mapRef.current);
-    }
-
-    return () => {
-      if (routingControlRef.current) {
-        mapRef.current?.removeControl(routingControlRef.current);
-      }
-    };
-  }, [routeWaypoints]);
-
-  useEffect(() => {
-    const waypoints: L.LatLng[] = [];
-
+    const waypoints: LatLng[] = [];
     if (userLocation) {
       waypoints.push(L.latLng(userLocation[0], userLocation[1]));
-    }
-
-    if (!userLocation && clickedMarker) {
+    } else if (clickedMarker) {
       waypoints.push(L.latLng(clickedMarker[0], clickedMarker[1]));
     }
-
     if (searchMarker) {
       waypoints.push(L.latLng(searchMarker[0], searchMarker[1]));
-    } else if (clickedMarker && userLocation) {
+    } else if (clickedMarker && waypoints.length === 1) {
       waypoints.push(L.latLng(clickedMarker[0], clickedMarker[1]));
     }
-
     setRouteWaypoints(waypoints);
   }, [userLocation, clickedMarker, searchMarker]);
 
   const clearRoute = () => {
-    setRouteWaypoints([]);
     setClickedMarker(null);
     setSearchMarker(null);
+    setRouteWaypoints([]);
   };
 
   return (
@@ -145,12 +102,11 @@ export default function Map() {
       <div className="absolute top-2 right-2 z-[1000] bg-white p-2 rounded shadow-md">
         <button
           onClick={clearRoute}
-          className="bg-red-500 text white px-3 py-1 rounded text-sm hover:bg-red-600"
+          className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
         >
           Clear Route
         </button>
       </div>
-
       <MapContainer
         center={center}
         zoom={13}
@@ -161,28 +117,21 @@ export default function Map() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-
         <MapClickHandler onMapClick={handleMapClick} />
-
         {searchMarker && (
           <Marker position={searchMarker}>
-            <Popup>Target Location</Popup>
+            <Popup>Searched Location</Popup>
           </Marker>
         )}
-
-        {clickedMarker && (
+        {clickedMarker && !searchMarker && (
           <Marker position={clickedMarker}>
             <Popup>Clicked Location</Popup>
           </Marker>
         )}
-
-        {/* {searchMarker && (
-          <Marker position={searchMarker}>
-            <Popup>Searched Location</Popup>
-          </Marker>
-        )} */}
-
         <UserLocationMarker onLocationChange={handleUserLocationChange} />
+        {routeWaypoints.length >= 2 && (
+          <RoutingMachine waypoints={routeWaypoints} />
+        )}
       </MapContainer>
     </>
   );
