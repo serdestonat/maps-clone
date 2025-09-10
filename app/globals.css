@@ -42,21 +42,32 @@ body {
   background: white;
   padding: 10px;
   border-radius: 5px;
-  max-height: 200px;
-  overflow-y: auto;
+  max-height: 300px; /* Yüksekliği artırdım ki alternatifler sığsın */
+  overflow-y: hidden;
   width: 300px;
+  color: black; /* Yazıları siyah yap */
+  z-index: 999; /* Paneli butonların altına al (butonlar z-1000) */
+  position: absolute;
+  top: 60px; /* Butonların altına kaydır (top-2 + padding ile uyumlu) */
+  right: 10px; /* Sağdan hizala */
 }
 
 .leaflet-routing-container h3 {
   margin-top: 0;
+  color: black; /* Başlıkları da siyah yap */
 }
 
 .leaflet-routing-alt {
-  display: none;
+  display: block; /* Alternatif rotaları göster */
 }
 
 .leaflet-routing-collapse-btn {
   position: absolute;
   top: 5px;
   right: 5px;
+}
+
+.leaflet-routing-container p,
+.leaflet-routing-container ul {
+  color: black; /* Paragraflar ve listeler için siyah renk */
 }

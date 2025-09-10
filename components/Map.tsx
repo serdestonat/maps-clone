@@ -54,6 +54,7 @@ export default function Map() {
     null
   );
   const [routeWaypoints, setRouteWaypoints] = useState<LatLng[]>([]);
+  const [routeType, setRouteType] = useState<"car" | "foot">("car");
   const mapRef = useRef<L.Map>(null);
 
   function handleSelect(coords: [number, number]) {
@@ -99,7 +100,15 @@ export default function Map() {
   return (
     <>
       <SearchBox onSelect={handleSelect} />
-      <div className="absolute top-2 right-2 z-[1000] bg-white p-2 rounded shadow-md">
+      <div className="absolute top-2 right-2 z-[1000] bg-white p-2 rounded shadow-md flex space-x-2">
+        <select
+          value={routeType}
+          onChange={(e) => setRouteType(e.target.value as "car" | "foot")}
+          className="p-1 border rounded text-black"
+        >
+          <option value="car">Araç Rotası</option>
+          <option value="foot">Yürüme Rotası</option>
+        </select>
         <button
           onClick={clearRoute}
           className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
@@ -130,7 +139,7 @@ export default function Map() {
         )}
         <UserLocationMarker onLocationChange={handleUserLocationChange} />
         {routeWaypoints.length >= 2 && (
-          <RoutingMachine waypoints={routeWaypoints} />
+          <RoutingMachine waypoints={routeWaypoints} routeType={routeType} />
         )}
       </MapContainer>
     </>
