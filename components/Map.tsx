@@ -106,8 +106,8 @@ export default function Map() {
           onChange={(e) => setRouteType(e.target.value as "car" | "foot")}
           className="p-1 border rounded text-black"
         >
-          <option value="car">Araç Rotası</option>
-          <option value="foot">Yürüme Rotası</option>
+          <option value="car">Vehicle Route</option>
+          <option value="foot">Walking Route</option>
         </select>
         <button
           onClick={clearRoute}
